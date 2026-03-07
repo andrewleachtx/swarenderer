@@ -7,9 +7,12 @@
 
 int main(int argc, char** argv) {
     if (argc != 3) {
-        perror("Usage: ./swarenderer <input mesh obj> <output image>");
+        printf("Usage: ./swarenderer <input mesh obj> <output image>");
         return 1;
     }
 
-    printf("hello\n");
+    std::string input_mesh_filename = argv[1];
+    std::string output_img_filename = argv[2];
+    printf("Loading %s and later exporting to %s\n",
+           input_mesh_filename.c_str(), output_img_filename.c_str());
 }

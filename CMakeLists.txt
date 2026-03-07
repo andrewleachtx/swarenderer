@@ -5,6 +5,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(swarenderer
     src/main.cpp
+    src/App.cpp
+    src/Mesh.cpp
 )
 target_include_directories(swarenderer PRIVATE include)
 target_include_directories(swarenderer SYSTEM PRIVATE vendor)
