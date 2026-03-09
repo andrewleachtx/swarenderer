@@ -20,9 +20,8 @@ int main(int argc, char** argv) {
         output_png_filename.c_str()
     );
 
-    Mesh input_mesh {};
-    input_mesh.load_mesh(input_mesh_filename);
-
     App app {input_mesh_filename, output_png_filename, 1024, 1024};
+    app.init();
+    
     app.run();
 }

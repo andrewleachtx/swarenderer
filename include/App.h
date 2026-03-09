@@ -33,7 +33,7 @@ private:
     std::string output_png_path_;
     int width_;
     int height_;
-    std::vector<glm::vec4> pixels_;
+    std::vector<uint8_t> pixels_;
     std::vector<Mesh> meshes_;
 
     void render_to_png();

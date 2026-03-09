@@ -12,10 +12,11 @@ public:
     Mesh() = default;
     Mesh(const Mesh&) = delete;
     Mesh& operator=(const Mesh&) = delete;
-    Mesh(Mesh&&) = delete;
-    Mesh& operator=(Mesh&&) = delete;
+    Mesh(Mesh&&) = default;
+    Mesh& operator=(Mesh&&) = default;
 
     void load_mesh(const std::string& input_mesh_filename);
+    void normalize_scale();
 
     // all per vertex
     bool is_initialized_ {false};

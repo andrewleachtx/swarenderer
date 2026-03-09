@@ -3,6 +3,8 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
 
+#include <algorithm>
+#include <limits>
 #include <iostream>
 
 // Originally retrieved from Shinjiro Sueda https://people.engr.tamu.edu/sueda/index.html#
@@ -69,5 +71,29 @@ void Mesh::load_mesh(const std::string& input_mesh_filename) {
         }
 
         is_initialized_ = true;
+    }
+}
+
+void Mesh::normalize_scale() {
+    float min_x = std::numeric_limits<float>::max(), max_x = std::numeric_limits<float>::lowest();
+    float min_y = std::numeric_limits<float>::max(), max_y = std::numeric_limits<float>::lowest();
+    float min_z = std::numeric_limits<float>::max(), max_z = std::numeric_limits<float>::lowest();
+    for (size_t i = 0; i < positions_.size(); i += 3) {
+        min_x = std::min(min_x, positions_[i]);
+        max_x = std::max(max_x, positions_[i]);
+        min_y = std::min(min_y, positions_[i + 1]);
+        max_y = std::max(max_y, positions_[i + 1]);
+        min_z = std::min(min_z, positions_[i + 2]);
+        max_z = std::max(max_z, positions_[i + 2]);
+    }
+
+    glm::vec3 center {(min_x + max_x) / 2.0f, (min_y + max_y) / 2.0f,
+                      (min_z + max_z) / 2.0f};
+    float scale = 2.0f / std::max({max_x - min_x, max_y - min_y, max_z - min_z});
+
+    for (size_t i = 0; i < positions_.size(); i += 3) {
+        positions_[i]     = (positions_[i]     - center.x) * scale;
+        positions_[i + 1] = (positions_[i + 1] - center.y) * scale;
+        positions_[i + 2] = (positions_[i + 2] - center.z) * scale;
     }
 }
