@@ -7,13 +7,16 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+class Mesh;
+
 class App {
 public:
-    explicit App(const std::string& input_mesh_path,
-                 const std::string& output_png_path, int width, int height)
-        : is_initialized_ { false }, input_mesh_path_ { input_mesh_path },
-          output_png_path_ { output_png_path }, width_ { width },
-          height_ { height } {}
+    explicit App(
+        const std::string& input_mesh, const std::string& output_png, int width,
+        int height
+    )
+        : is_initialized_ {false}, input_mesh_path_ {input_mesh},
+          output_png_path_ {output_png}, width_ {width}, height_ {height} {}
     ~App() {}
 
     App(const App&) = delete;
@@ -31,6 +34,7 @@ private:
     int width_;
     int height_;
     std::vector<glm::vec4> pixels_;
+    std::vector<Mesh> meshes_;
 
     void render_to_png();
 };

@@ -1,9 +1,9 @@
-#define TINYOBJLOADER_IMPLEMENTATION
 #include "Mesh.h"
 
-#include <iostream>
-
+#define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
+
+#include <iostream>
 
 // Originally retrieved from Shinjiro Sueda https://people.engr.tamu.edu/sueda/index.html#
 void Mesh::load_mesh(const std::string& input_mesh_filename) {
@@ -12,8 +12,9 @@ void Mesh::load_mesh(const std::string& input_mesh_filename) {
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     std::string errStr;
-    bool rc = tinyobj::LoadObj(&attrib, &shapes, &materials, &errStr,
-                               input_mesh_filename.c_str());
+    bool rc = tinyobj::LoadObj(
+        &attrib, &shapes, &materials, &errStr, input_mesh_filename.c_str()
+    );
     if (!rc) {
         std::cerr << errStr << std::endl;
     }
@@ -35,18 +36,24 @@ void Mesh::load_mesh(const std::string& input_mesh_filename) {
                     tinyobj::index_t idx =
                         shapes[s].mesh.indices[index_offset + v];
                     positions_.push_back(
-                        attrib.vertices[3 * idx.vertex_index + 0]);
+                        attrib.vertices[3 * idx.vertex_index + 0]
+                    );
                     positions_.push_back(
-                        attrib.vertices[3 * idx.vertex_index + 1]);
+                        attrib.vertices[3 * idx.vertex_index + 1]
+                    );
                     positions_.push_back(
-                        attrib.vertices[3 * idx.vertex_index + 2]);
+                        attrib.vertices[3 * idx.vertex_index + 2]
+                    );
                     if (!attrib.normals.empty()) {
                         normals_.push_back(
-                            attrib.normals[3 * idx.normal_index + 0]);
+                            attrib.normals[3 * idx.normal_index + 0]
+                        );
                         normals_.push_back(
-                            attrib.normals[3 * idx.normal_index + 1]);
+                            attrib.normals[3 * idx.normal_index + 1]
+                        );
                         normals_.push_back(
-                            attrib.normals[3 * idx.normal_index + 2]);
+                            attrib.normals[3 * idx.normal_index + 2]
+                        );
                     }
                     // if (!attrib.texcoords.empty()) {
                     //     texBuf.push_back(
@@ -60,5 +67,7 @@ void Mesh::load_mesh(const std::string& input_mesh_filename) {
                 //shapes[s].mesh.material_ids[f];
             }
         }
+
+        is_initialized_ = true;
     }
 }
