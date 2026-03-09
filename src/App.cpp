@@ -10,6 +10,54 @@
 static constexpr uint8_t WHITE = 255;
 static constexpr uint8_t BLACK = 0;
 
+static void
+set_pixel(int x, int y, std::vector<uint8_t>& pixels, int width, int height) {
+    if (x < 0 || x >= width || y < 0 || y >= height)
+        return;
+    size_t idx = (y * width + x) * 4;
+    pixels[idx] = BLACK;
+    pixels[idx + 1] = BLACK;
+    pixels[idx + 2] = BLACK;
+    pixels[idx + 3] = WHITE;
+}
+
+static void draw_line(
+    int x0, int y0, int x1, int y1, std::vector<uint8_t>& pixels, int width,
+    int height
+) {
+    // y = mx + b, only allow y to deviate a certain amt
+    // handle steep lines by swapping axes
+    bool steep = abs(y1 - y0) > abs(x1 - x0);
+    if (steep) {
+        std::swap(x0, y0);
+        std::swap(x1, y1);
+    }
+
+    // ensure we always iterate left to right
+    if (x0 > x1) {
+        std::swap(x0, x1);
+        std::swap(y0, y1);
+    }
+
+    const float m = (x1 == x0) ? 0.0f : static_cast<float>(y1 - y0) / (x1 - x0);
+
+    int y = y0;
+    for (int x = x0; x <= x1; x++) {
+        float expected_y = m * (x - x0) + y0;
+        if (static_cast<float>(y) - expected_y > 0.5f) {
+            y--;
+        }
+        else if (expected_y - static_cast<float>(y) > 0.5f) {
+            y++;
+        }
+
+        if (steep)
+            set_pixel(y, x, pixels, width, height);
+        else
+            set_pixel(x, y, pixels, width, height);
+    }
+}
+
 void App::init() {
     // todo glfw setup when realtime
 
@@ -87,39 +135,49 @@ void App::run() {
             min_y, max_y, min_z, max_z
         );
 
-        for (size_t i = 0; i < m.positions_.size(); i += 3) {
-            glm::vec4 vert {
-                m.positions_[i], m.positions_[i + 1], m.positions_[i + 2], 1.0f
-            };
+        for (size_t i = 0; i < m.positions_.size(); i += 9) {
+            glm::ivec2 screen_verts[3];
+            bool skip_tri = false;
 
-            // world -> view
-            vert = world_to_view_mat * vert;
+            for (int j = 0; j < 3; j++) {
+                glm::vec4 vert {
+                    m.positions_[i + j * 3], m.positions_[i + j * 3 + 1],
+                    m.positions_[i + j * 3 + 2], 1.0f
+                };
 
-            // view -> clip space via projection
-            vert = projection_mat * vert;
+                vert = world_to_view_mat * vert;
+                vert = projection_mat * vert;
 
-            // clip anything beyond [-w, w]
-            if (vert.x < -vert.w || vert.x > vert.w || vert.y < -vert.w ||
-                vert.y > vert.w || vert.z < -vert.w || vert.z > vert.w) {
-                continue;
+                if (vert.x < -vert.w || vert.x > vert.w || vert.y < -vert.w ||
+                    vert.y > vert.w || vert.z < -vert.w || vert.z > vert.w) {
+                    skip_tri = true;
+                    break;
+                }
+
+                vert /= vert.w;
+
+                screen_verts[j] = glm::ivec2 {
+                    static_cast<int>(vert.x * (width_ / 2) + (width_ / 2)),
+                    static_cast<int>(-vert.y * (height_ / 2) + (height_ / 2))
+                };
             }
 
-            // normalize (div by w)
-            vert /= vert.w;
+            if (skip_tri)
+                continue;
 
-            int screen_x =
-                static_cast<int>(vert.x * (width_ / 2) + (width_ / 2));
-            int screen_y =
-                static_cast<int>(-vert.y * (height_ / 2) + (height_ / 2));
-
-            size_t pixel_idx = (screen_y * width_ + screen_x) * 4;
-            pixels_[pixel_idx + 0] = BLACK;
-            pixels_[pixel_idx + 1] = BLACK;
-            pixels_[pixel_idx + 2] = BLACK;
-            pixels_[pixel_idx + 3] = WHITE;
-
-            // indices in strides of 9 form a triangle, so [0, 8] are tri 1 xyzxyzxyz
-            // todo: can draw a line between triangles for a wire
+            // draw 3 edges: v0-v1, v1-v2, v2-v0
+            draw_line(
+                screen_verts[0].x, screen_verts[0].y, screen_verts[1].x,
+                screen_verts[1].y, pixels_, width_, height_
+            );
+            draw_line(
+                screen_verts[1].x, screen_verts[1].y, screen_verts[2].x,
+                screen_verts[2].y, pixels_, width_, height_
+            );
+            draw_line(
+                screen_verts[2].x, screen_verts[2].y, screen_verts[0].x,
+                screen_verts[0].y, pixels_, width_, height_
+            );
         }
     }
 
